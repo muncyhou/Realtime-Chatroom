@@ -80,7 +80,7 @@ getRealTimeUserData(realTimeUserData);
           :key="timestamp"
         >
           <div
-            class="flex h-16 w-16 items-center justify-center rounded-full bg-blue-200 text-2xl font-extrabold text-gray-500"
+            class="flex h-16 w-16 items-center justify-center rounded-full bg-green-200 text-2xl font-extrabold text-gray-500"
           >
             {{ firstLetter(userName) }}
           </div>
