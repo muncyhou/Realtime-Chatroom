@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watchEffect, nextTick } from "vue";
+import { ref, watch, nextTick, onMounted } from "vue";
 import { writeUserMsg, getRealTimeUserData } from "../utils/firebase";
 
 const userName = ref("");
@@ -8,8 +8,8 @@ const status = ref(false);
 const realTimeUserData = ref([]);
 const refMsg = ref(null);
 
-watchEffect(() => {
-  if (userName.value === "") status.value = false;
+watch(userName, () => {
+  status.value = false;
 });
 
 const confirmUserName = () => {
@@ -23,14 +23,14 @@ const confirmUserName = () => {
 const sendMsg = () => {
   if (msg.value === "") return;
 
-  const userId = Date.now();
+  const time = Date.now();
 
-  writeUserMsg(userId, userName.value, msg.value);
+  writeUserMsg(userName.value, msg.value, time);
 
   msg.value = "";
 };
 
-const firstLetter = (userName) => userName.substr(0, 1);
+const firstLetter = (chatroomUserName) => chatroomUserName.substr(0, 1);
 
 const transTimestamp = (timestamp) => {
   const now = new Date(parseInt(timestamp));
@@ -50,13 +50,20 @@ const transTimestamp = (timestamp) => {
 
 const transTenDigit = (num) => (num < 10 ? `0${num}` : num);
 
-getRealTimeUserData(realTimeUserData);
+const isUser = (chatroomUserName) =>
+  chatroomUserName === userName.value && status.value;
+
+onMounted(() => {
+  getRealTimeUserData(realTimeUserData);
+});
 </script>
 
 <template>
   <div class="container mx-auto py-4">
     <div class="grid grid-cols-3 gap-4">
-      <div class="col-span-2 rounded border p-3">
+      <div
+        class="col-span-2 max-h-[calc(100vh-2rem)] overflow-y-auto rounded border p-3"
+      >
         <form class="flex" @submit.prevent="sendMsg">
           <input
             type="text"
@@ -76,29 +83,49 @@ getRealTimeUserData(realTimeUserData);
 
         <div
           class="mt-4 flex"
-          v-for="({ userName, msg }, timestamp) in realTimeUserData"
-          :key="timestamp"
+          :class="{ 'flex-row-reverse': isUser(item.userName) }"
+          v-for="(item, key) in realTimeUserData"
+          :key="key"
         >
           <div
-            class="flex h-16 w-16 items-center justify-center rounded-full bg-green-200 text-2xl font-extrabold text-gray-500"
+            class="flex h-16 w-16 items-center justify-center rounded-full bg-gray-200 text-2xl font-extrabold text-gray-500"
           >
-            {{ firstLetter(userName) }}
+            {{ firstLetter(item.userName) }}
           </div>
 
-          <div class="ml-3 flex-auto">
-            <div class="mb-2 flex items-end">
-              <h3 class="text-xl font-bold">{{ userName }}</h3>
-              <span class="mb-1 ml-2 text-sm text-gray-500">{{
-                transTimestamp(timestamp)
-              }}</span>
+          <div
+            class="flex flex-auto flex-col"
+            :class="[isUser(item.userName) ? 'mr-3 items-end' : 'ml-3']"
+          >
+            <div
+              class="mb-2 flex items-end"
+              :class="{ 'flex-row-reverse': isUser(item.userName) }"
+            >
+              <h3 class="text-xl font-bold">{{ item.userName }}</h3>
+              <span
+                class="mb-1 ml-2 text-sm text-gray-500"
+                :class="[isUser(item.userName) ? 'mr-2' : 'ml-2']"
+              >
+                {{ transTimestamp(item.time) }}
+              </span>
             </div>
 
-            <p class="rounded bg-gray-100 p-2">{{ msg }}</p>
+            <p
+              class="w-3/4 rounded bg-gray-100 p-2"
+              :class="[
+                isUser(item.userName)
+                  ? 'bg-blue-400 text-white'
+                  : 'bg-gray-100',
+                { 'text-right': isUser(item.userName) },
+              ]"
+            >
+              {{ item.msg }}
+            </p>
           </div>
         </div>
       </div>
 
-      <div class="rounded border p-3">
+      <div class="self-start rounded border p-3">
         <form @submit.prevent="confirmUserName" class="flex flex-col">
           <label for="userName" class="mb-2">輸入使用者名稱</label>
           <input

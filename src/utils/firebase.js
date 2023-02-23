@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set, onValue } from "firebase/database";
+import { getDatabase, ref, set, onValue, push, child } from "firebase/database";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -21,16 +21,21 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
+const chatroomRef = ref(database, "chatroom");
 
-export function writeUserMsg(userId, userName, msg) {
-  set(ref(database, `messages/${userId}`), {
+export function writeUserMsg(userName, msg, time) {
+  const { key } = push(chatroomRef);
+
+  set(child(chatroomRef, key), {
+    key,
     userName,
     msg,
+    time,
   });
 }
 
 export async function getRealTimeUserData(realTimeUserData) {
-  onValue(ref(database, "messages"), (snapshot) => {
+  onValue(chatroomRef, (snapshot) => {
     realTimeUserData.value = snapshot.val();
   });
 }
