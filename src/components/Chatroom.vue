@@ -103,7 +103,7 @@ onMounted(() => {
             >
               <h3 class="text-xl font-bold">{{ item.userName }}</h3>
               <span
-                class="mb-1 ml-2 text-sm text-gray-500"
+                class="mb-1 text-sm text-gray-500"
                 :class="[isUser(item.userName) ? 'mr-2' : 'ml-2']"
               >
                 {{ transTimestamp(item.time) }}
@@ -111,7 +111,7 @@ onMounted(() => {
             </div>
 
             <p
-              class="w-3/4 rounded bg-gray-100 p-2"
+              class="w-3/4 rounded p-2"
               :class="[
                 isUser(item.userName)
                   ? 'bg-blue-400 text-white'
